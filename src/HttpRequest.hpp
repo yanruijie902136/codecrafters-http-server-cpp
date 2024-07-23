@@ -31,7 +31,7 @@ public:
 
         // Parse the headers.
         while (std::getline(ss, line)) {
-            assert(line.back() == 'r');
+            assert(line.back() == '\r');
             line.pop_back();
             if (line.empty()) {
                 break;
