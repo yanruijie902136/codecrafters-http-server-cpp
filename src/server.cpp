@@ -118,6 +118,11 @@ int main(int argc, char **argv) {
                 response.body = request.target.substr(6);
                 response.headers["Content-Type"] = "text/plain";
                 response.headers["Content-Length"] = std::to_string(response.body.length());
+                if (request.headers.find("Accept-Encoding") != request.headers.end()) {
+                    if (request.headers["Accept-Encoding"] == "gzip") {
+                        response.headers["Content-Encoding"] = "gzip";
+                    }
+                }
             }
             else if (request.target.starts_with("/files/")) {
                 std::filesystem::path file_path = request.target.substr(7);
