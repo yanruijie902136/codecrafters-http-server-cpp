@@ -15,6 +15,8 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include <zconf.h>
+#include <zlib.h>
 
 #include "HttpMethod.hpp"
 #include "HttpRequest.hpp"
@@ -30,6 +32,14 @@ static std::vector<std::string> delimit_string(const std::string &str, const std
     }
     res.push_back(str.substr(pos));
     return res;
+}
+
+char *gzip_compress(const char *source, uLong source_len) {
+    static char buffer[8192];
+    uLong dest_len;
+    compress((Bytef *)buffer, &dest_len, (Bytef *)source, source_len);
+    buffer[dest_len] = 0;
+    return buffer;
 }
 
 int main(int argc, char **argv) {
@@ -129,14 +139,15 @@ int main(int argc, char **argv) {
             else if (request.target.starts_with("/echo/")) {
                 response.status = HttpStatus::OK;
                 response.body = request.target.substr(6);
-                response.headers["Content-Type"] = "text/plain";
-                response.headers["Content-Length"] = std::to_string(response.body.length());
                 if (request.headers.find("Accept-Encoding") != request.headers.end()) {
                     auto compression_schemes = delimit_string(request.headers["Accept-Encoding"], ", ");
                     if (std::find(compression_schemes.begin(), compression_schemes.end(), "gzip") != compression_schemes.end()) {
                         response.headers["Content-Encoding"] = "gzip";
+                        response.body = gzip_compress(response.body.c_str(), response.body.length());
                     }
                 }
+                response.headers["Content-Type"] = "text/plain";
+                response.headers["Content-Length"] = std::to_string(response.body.length());
             }
             else if (request.target.starts_with("/files/")) {
                 std::filesystem::path file_path = request.target.substr(7);
