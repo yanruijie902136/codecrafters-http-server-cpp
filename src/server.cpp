@@ -13,11 +13,23 @@
 #include <netdb.h>
 #include <sys/select.h>
 #include <cassert>
+#include <vector>
 
 #include "HttpMethod.hpp"
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 #include "HttpStatus.hpp"
+
+static std::vector<std::string> delimit_string(const std::string &str, const std::string &delimiter) {
+    std::vector<std::string> res;
+    std::size_t pos = 0, nextpos;
+    while ((nextpos = str.find(delimiter, pos)) != std::string::npos) {
+        res.push_back(str.substr(pos, nextpos - pos));
+        pos = nextpos + delimiter.length();
+    }
+    res.push_back(str.substr(pos));
+    return res;
+}
 
 int main(int argc, char **argv) {
     std::filesystem::path root_dir;
@@ -119,7 +131,8 @@ int main(int argc, char **argv) {
                 response.headers["Content-Type"] = "text/plain";
                 response.headers["Content-Length"] = std::to_string(response.body.length());
                 if (request.headers.find("Accept-Encoding") != request.headers.end()) {
-                    if (request.headers["Accept-Encoding"] == "gzip") {
+                    auto compression_schemes = delimit_string(request.headers["Accept-Encoding"], ", ");
+                    if (std::find(compression_schemes.begin(), compression_schemes.end(), "gzip") != compression_schemes.end()) {
                         response.headers["Content-Encoding"] = "gzip";
                     }
                 }
