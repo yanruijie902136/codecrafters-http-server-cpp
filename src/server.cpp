@@ -8,6 +8,10 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
+#include "HttpStatus.hpp"
+
 int main(int argc, char **argv) {
     // Flush after every std::cout / std::cerr
     std::cout << std::unitbuf;
@@ -49,12 +53,20 @@ int main(int argc, char **argv) {
     }
 
     struct sockaddr_in client_addr;
-    int client_addr_len = sizeof(client_addr);
+    socklen_t client_addr_len = sizeof(client_addr);
 
     std::cout << "Waiting for a client to connect...\n";
 
-    accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *) &client_addr_len);
+    int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
     std::cout << "Client connected\n";
+
+    HttpRequest request = HttpRequest::read_from_socket(client_fd);
+    std::cout << request << "\n";
+
+    HttpResponse response;
+    response.status = HttpStatus::OK;
+    std::string response_str = response.str();
+    send(client_fd, response_str.c_str(), response_str.length(), 0);
 
     close(server_fd);
 
