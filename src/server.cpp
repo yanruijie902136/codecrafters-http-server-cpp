@@ -34,7 +34,7 @@ static std::vector<std::string> delimit_string(const std::string &str, const std
     return res;
 }
 
-char *gzip_compress(const char *source, uLong source_len) {
+std::pair<char *, uLong> gzip_compress(const char *source, uLong source_len) {
     static char buffer[8192];
 
     z_stream zs;
@@ -49,7 +49,7 @@ char *gzip_compress(const char *source, uLong source_len) {
     deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15 | 16, 8, Z_DEFAULT_STRATEGY);
     deflate(&zs, Z_FINISH);
     deflateEnd(&zs);
-    return buffer;
+    return {buffer, zs.total_out};
 }
 
 int main(int argc, char **argv) {
@@ -153,7 +153,8 @@ int main(int argc, char **argv) {
                     auto compression_schemes = delimit_string(request.headers["Accept-Encoding"], ", ");
                     if (std::find(compression_schemes.begin(), compression_schemes.end(), "gzip") != compression_schemes.end()) {
                         response.headers["Content-Encoding"] = "gzip";
-                        response.body = gzip_compress(response.body.c_str(), response.body.length());
+                        auto [buffer, size] = gzip_compress(response.body.c_str(), response.body.length());
+                        response.body = std::string(buffer, size);
                     }
                 }
                 response.headers["Content-Type"] = "text/plain";
