@@ -117,6 +117,7 @@ int main(int argc, char **argv) {
                     response.status = HttpStatus::NOT_FOUND;
                 }
                 else {
+                    response.status = HttpStatus::OK;
                     std::stringstream ss;
                     ss << fp.rdbuf();
                     response.body = ss.str();
