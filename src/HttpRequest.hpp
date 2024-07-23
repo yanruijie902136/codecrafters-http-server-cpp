@@ -28,8 +28,13 @@ public:
 
         // Parse the first line.
         std::getline(ss, line);
-        assert(line.starts_with("GET "));
-        request.method = HttpMethod::GET;
+        if (line.starts_with("GET ")) {
+            request.method = HttpMethod::GET;
+        }
+        else {
+            assert(line.starts_with("POST "));
+            request.method = HttpMethod::POST;
+        }
         std::size_t start_pos = line.find(' ') + 1, end_pos = line.rfind(' ');
         request.target = line.substr(start_pos, end_pos - start_pos);
 

@@ -5,12 +5,15 @@
 
 enum class HttpMethod {
     GET,
+    POST,
 };
 
 inline std::string method_to_str(HttpMethod method) {
     switch (method) {
     case HttpMethod::GET:
         return "GET";
+    case HttpMethod::POST:
+        return "POST";
     }
 }
 

@@ -12,7 +12,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/select.h>
+#include <cassert>
 
+#include "HttpMethod.hpp"
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 #include "HttpStatus.hpp"
@@ -98,7 +100,14 @@ int main(int argc, char **argv) {
             }
 
             HttpResponse response;
-            if (request.target == "/user-agent") {
+            if (request.method == HttpMethod::POST) {
+                assert(request.target.starts_with("/files/"));
+                std::filesystem::path file_path = request.target.substr(7);
+                std::ofstream fp(root_dir / file_path);
+                fp << request.body;
+                response.status = HttpStatus::CREATED;
+            }
+            else if (request.target == "/user-agent") {
                 response.status = HttpStatus::OK;
                 response.body = request.headers["User-Agent"];
                 response.headers["Content-Type"] = "text/plain";
