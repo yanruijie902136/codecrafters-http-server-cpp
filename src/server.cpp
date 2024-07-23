@@ -64,7 +64,15 @@ int main(int argc, char **argv) {
     std::cout << request << "\n";
 
     HttpResponse response;
-    response.status = request.target == "/" ? HttpStatus::OK : HttpStatus::NOT_FOUND;
+    if (request.target.starts_with("/echo/")) {
+        response.status = HttpStatus::OK;
+        response.body = request.target.substr(6);
+        response.headers["Content-Type"] = "text/plain";
+        response.headers["Content-Length"] = std::to_string(response.body.length());
+    } else {
+        response.status = request.target == "/" ? HttpStatus::OK : HttpStatus::NOT_FOUND;
+    }
+
     std::string response_str = response.str();
     send(client_fd, response_str.c_str(), response_str.length(), 0);
 
