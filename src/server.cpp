@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     std::cout << request << "\n";
 
     HttpResponse response;
-    response.status = HttpStatus::OK;
+    response.status = request.target == "/" ? HttpStatus::OK : HttpStatus::NOT_FOUND;
     std::string response_str = response.str();
     send(client_fd, response_str.c_str(), response_str.length(), 0);
 
