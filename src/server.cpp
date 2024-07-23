@@ -81,8 +81,13 @@ int main(int argc, char **argv) {
                 continue;
             }
 
-            HttpRequest request = HttpRequest::read_from_socket(client_fd);
-            // std::cout << request << "\n";
+            auto [request, connected] = HttpRequest::read_from_socket(client_fd);
+            if (!connected) {
+                close(client_fd);
+                FD_CLR(client_fd, &readfds);
+                client_fds.erase(it++);
+                continue;
+            }
 
             HttpResponse response;
             if (request.target == "/user-agent") {

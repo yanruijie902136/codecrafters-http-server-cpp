@@ -13,14 +13,18 @@
 
 class HttpRequest {
 public:
-    static HttpRequest read_from_socket(int socket_fd) {
+    static std::pair<HttpRequest, bool> read_from_socket(int socket_fd) {
+        HttpRequest request;
+
         static char input_buffer[1024];
         ssize_t r = recv(socket_fd, input_buffer, sizeof(input_buffer), 0);
+        if (r == 0) {
+            return {request, false};
+        }
         input_buffer[r] = 0;
 
         std::stringstream ss(input_buffer);
         std::string line;
-        HttpRequest request;
 
         // Parse the first line.
         std::getline(ss, line);
@@ -52,7 +56,7 @@ public:
         // Extract the body.
         std::getline(ss, request.body);
 
-        return request;
+        return {request, true};
     }
 
     // For debugging purposes.
