@@ -103,6 +103,8 @@ int main(int argc, char **argv) {
 
             std::string response_str = response.str();
             send(client_fd, response_str.c_str(), response_str.length(), 0);
+
+            it++;
         }
     }
 }
