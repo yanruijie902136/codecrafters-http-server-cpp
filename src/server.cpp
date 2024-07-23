@@ -1,6 +1,9 @@
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <cstdlib>
 #include <set>
+#include <sstream>
 #include <string>
 #include <cstring>
 #include <unistd.h>
@@ -15,6 +18,11 @@
 #include "HttpStatus.hpp"
 
 int main(int argc, char **argv) {
+    std::filesystem::path root_dir;
+    if (argc > 2) {
+        root_dir = argv[2];
+    }
+
     // Flush after every std::cout / std::cerr
     std::cout << std::unitbuf;
     std::cerr << std::unitbuf;
@@ -101,6 +109,20 @@ int main(int argc, char **argv) {
                 response.body = request.target.substr(6);
                 response.headers["Content-Type"] = "text/plain";
                 response.headers["Content-Length"] = std::to_string(response.body.length());
+            }
+            else if (request.target.starts_with("/files/")) {
+                std::filesystem::path file_path = request.target.substr(7);
+                std::ifstream fp(root_dir / file_path);
+                if (fp.fail()) {
+                    response.status = HttpStatus::NOT_FOUND;
+                }
+                else {
+                    std::stringstream ss;
+                    ss << fp.rdbuf();
+                    response.body = ss.str();
+                    response.headers["Content-Type"] = "application/octet-stream";
+                    response.headers["Content-Length"] = std::to_string(response.body.length());
+                }
             }
             else {
                 response.status = request.target == "/" ? HttpStatus::OK : HttpStatus::NOT_FOUND;
