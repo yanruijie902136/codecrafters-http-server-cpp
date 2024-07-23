@@ -14,6 +14,7 @@
 #include <sys/select.h>
 #include <cassert>
 #include <vector>
+#include <algorithm>
 
 #include "HttpMethod.hpp"
 #include "HttpRequest.hpp"
