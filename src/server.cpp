@@ -61,15 +61,22 @@ int main(int argc, char **argv) {
     std::cout << "Client connected\n";
 
     HttpRequest request = HttpRequest::read_from_socket(client_fd);
-    std::cout << request << "\n";
+    // std::cout << request << "\n";
 
     HttpResponse response;
-    if (request.target.starts_with("/echo/")) {
+    if (request.target == "/user-agent") {
+        response.status = HttpStatus::OK;
+        response.body = request.headers["User-Agent"];
+        response.headers["Content-Type"] = "text/plain";
+        response.headers["Content-Length"] = std::to_string(response.body.length());
+    }
+    else if (request.target.starts_with("/echo/")) {
         response.status = HttpStatus::OK;
         response.body = request.target.substr(6);
         response.headers["Content-Type"] = "text/plain";
         response.headers["Content-Length"] = std::to_string(response.body.length());
-    } else {
+    }
+    else {
         response.status = request.target == "/" ? HttpStatus::OK : HttpStatus::NOT_FOUND;
     }
 
