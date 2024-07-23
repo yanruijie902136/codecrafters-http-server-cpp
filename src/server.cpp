@@ -36,9 +36,19 @@ static std::vector<std::string> delimit_string(const std::string &str, const std
 
 char *gzip_compress(const char *source, uLong source_len) {
     static char buffer[8192];
-    uLong dest_len;
-    compress((Bytef *)buffer, &dest_len, (Bytef *)source, source_len);
-    buffer[dest_len] = 0;
+
+    z_stream zs;
+    zs.zalloc = Z_NULL;
+    zs.zfree = Z_NULL;
+    zs.opaque = Z_NULL;
+    zs.avail_in = (uInt)source_len;
+    zs.next_in = (Bytef *)source;
+    zs.avail_out = (uInt)sizeof(buffer);
+    zs.next_out = (Bytef *)buffer;
+
+    deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15 | 16, 8, Z_DEFAULT_STRATEGY);
+    deflate(&zs, Z_FINISH);
+    deflateEnd(&zs);
     return buffer;
 }
 
